@@ -4,6 +4,7 @@ import com.sun.org.apache.xerces.internal.dom.PSVIElementNSImpl;
 import sun.nio.ch.ThreadPool;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -28,7 +29,7 @@ public class Server {
 			while (keysIterator.hasNext()) {
 				SelectionKey key = keysIterator.next();
 				if (key.isAcceptable()) {
-					this.register(selector, serverSocketChannel);
+					this.register(selector, (ServerSocketChannel) key.channel());
 				}
 				
 				if (key.isReadable()) {
@@ -36,10 +37,10 @@ public class Server {
 					SocketChannel sc = (SocketChannel) key.channel();
 					int numRead = sc.read(buf);
 					if (numRead > 0) {
-						System.out.println("Server: " + buf.getChar());
-						buf.clear();
+						System.out.println("Server: " + new String(buf.array()));
 						
 					}
+					buf.clear();
 				}
 			}
 			Thread.sleep(1000);
@@ -49,7 +50,7 @@ public class Server {
 	public void startServer(){
 		try {
 			serverSocketChannel = ServerSocketChannel.open();
-			serverSocketChannel.socket().bind(new InetSocketAddress(50000));
+			serverSocketChannel.bind(new InetSocketAddress(50000));
 			serverSocketChannel.configureBlocking(false);
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 			System.out.println("Server listening on: "+serverSocketChannel.getLocalAddress());
@@ -61,9 +62,11 @@ public class Server {
 	public void register(Selector s, ServerSocketChannel ssc){
 		try {
 			SocketChannel sc = ssc.accept();
-			sc.configureBlocking(false);
-			sc.register(s, SelectionKey.OP_READ);
-			System.out.println("registered client: "+sc.getRemoteAddress());
+			if (sc != null) {
+				sc.configureBlocking(false);
+				sc.register(s, SelectionKey.OP_READ);
+				System.out.println("registered client: " + sc.getRemoteAddress());
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
