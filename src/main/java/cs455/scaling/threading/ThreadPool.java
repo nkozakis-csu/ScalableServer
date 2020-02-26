@@ -8,9 +8,9 @@ public class ThreadPool {
 	int numThreads;
 	Worker[] workers;
 	ArrayList<Integer> freeThreads;
-	LinkedList<Task> jobs;
+	final LinkedList<Task> jobs;
 	
-	private static ThreadPool threadPool = new ThreadPool(1);
+	private static ThreadPool threadPool = new ThreadPool(2);
 	
 	public static ThreadPool getInstance() {
 		return threadPool;
@@ -46,12 +46,27 @@ public class ThreadPool {
 	}
 	
 	public void addTask(Task t){
-		jobs.addLast(t);
+		synchronized (jobs) {
+			jobs.addLast(t);
+			jobs.notify();
+		}
+	}
+	
+	public Task getNextTask(){
+		synchronized (jobs){
+			if(jobs.size()==0)
+				try {
+					jobs.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			return jobs.removeFirst();
+		}
 	}
 	
 	public void startNextJob(){
 		Worker w = getAvailableWorker();
-		Task t = jobs.removeFirst();
+		Task t = getNextTask();
 		w.assign(t);
 	}
 	
@@ -69,15 +84,9 @@ public class ThreadPool {
 		pool.addTask(t);
 		pool.addTask(t);
 		pool.addTask(t);
-		pool.startNextJob();
-		pool.startNextJob();
-		pool.startNextJob();
-		pool.startNextJob();
-		pool.startNextJob();
-		pool.startNextJob();
-		pool.startNextJob();
-		pool.startNextJob();
-		pool.startNextJob();
-		System.out.println("moved on");
+		while(true) {
+			System.out.println("Starting task");
+			pool.startNextJob();
+		}
 	}
 }
