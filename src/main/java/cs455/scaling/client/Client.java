@@ -11,7 +11,7 @@ public class Client {
 	ByteBuffer buf;
 	
 	public Client(){
-		buf = ByteBuffer.allocate(64);
+		buf = ByteBuffer.allocate(1024);
 		
 		
 	}
@@ -26,7 +26,7 @@ public class Client {
 			System.out.println("Connected");
 			while(socketChannel != null){
 				if(buf.position()==0)
-					buf.put(("data: "+System.currentTimeMillis()).getBytes());
+					buf.put(generateRandomMessage());
 				buf.flip();
 				socketChannel.write(buf);
 				buf.flip();
@@ -43,7 +43,7 @@ public class Client {
 	}
 	
 	public byte[] generateRandomMessage(){
-		return new byte[10];
+		return ("data: "+System.currentTimeMillis()).getBytes();
 	}
 	
 	public static void main(String[] args) {
