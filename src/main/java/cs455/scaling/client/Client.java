@@ -43,7 +43,7 @@ public class Client {
 	}
 	
 	public byte[] generateRandomMessage(){
-		return ("data: "+System.currentTimeMillis()).getBytes();
+		return ("data2: "+System.currentTimeMillis()).getBytes();
 	}
 	
 	public static void main(String[] args) {
