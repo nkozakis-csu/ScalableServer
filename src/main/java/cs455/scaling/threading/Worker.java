@@ -30,10 +30,12 @@ public class Worker extends Thread{
 				batch = null;
 				ThreadPool.getInstance().addAvailableWorker(this.id);
 			}else{
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				synchronized (this){
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -41,5 +43,6 @@ public class Worker extends Thread{
 	
 	public void assign(LinkedList<Task> batch){
 		this.batch = batch;
+		synchronized (this) { notify(); }
 	}
 }

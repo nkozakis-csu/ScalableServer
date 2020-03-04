@@ -14,7 +14,7 @@ public class Throughput extends TimerTask {
 	
 	@Override
 	public void run() {
-		System.out.printf("Server Throughput: %d messages/s \nActive client connections: %d\n",server.messageCount.get()/20, server.activeConnections.get());
+		System.out.printf("Server Throughput: %d messages/s \nActive client connections: %d\n",server.messageCount.get()/10, server.activeConnections.get());
 		server.messageCount.set(0);
 	}
 }

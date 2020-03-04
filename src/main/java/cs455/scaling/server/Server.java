@@ -37,7 +37,7 @@ public class Server {
 					SelectionKey key = keysIterator.next();
 					if (key.isAcceptable()) {
 						ThreadPool.getInstance().addTask(new RegisterTask(this, selector, (ServerSocketChannel) key.channel()));
-						//					this.register(selector, (ServerSocketChannel) key.channel());
+						//this.register(selector, (ServerSocketChannel) key.channel());
 					}
 					
 					if (key.isReadable()) {
@@ -63,7 +63,7 @@ public class Server {
 			serverSocketChannel.configureBlocking(false);
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 			System.out.println("Server listening on: "+serverSocketChannel.getLocalAddress());
-			infoTimer.scheduleAtFixedRate(new Throughput(this), 0, 20000);
+			infoTimer.scheduleAtFixedRate(new Throughput(this), 10000, 10000);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

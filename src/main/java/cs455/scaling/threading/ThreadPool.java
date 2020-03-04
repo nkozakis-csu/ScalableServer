@@ -56,8 +56,8 @@ public class ThreadPool {
 					e.printStackTrace();
 				}
 			}
+			return workers[freeThreads.remove(0)];
 		}
-		return workers[freeThreads.remove(0)];
 		
 	}
 	
