@@ -19,12 +19,14 @@ public class Server {
 	
 	public AtomicInteger messageCount;
 	public AtomicInteger activeConnections;
+	ByteBuffer buffer;
 	
 	public Server() throws IOException {
 		selector = Selector.open();
 		messageCount = new AtomicInteger(0);
 		activeConnections = new AtomicInteger(0);
 		infoTimer = new Timer();
+		buffer = ByteBuffer.allocate(8192);
 	}
 	
 	public void handleSockets() {
@@ -44,10 +46,9 @@ public class Server {
 					
 					if (key.isReadable()) {
 						SocketChannel sc = (SocketChannel) key.channel();
-						ByteBuffer buffer = ByteBuffer.allocate(8192);
 						int numRead = sc.read(buffer);
 						if (numRead > 0) {
-							ThreadPool.getInstance().addTask(new ProcessDataTask(this, buffer));
+							ThreadPool.getInstance().addTask(new ProcessDataTask(this, Arrays.copyOfRange(buffer.array(), 0, buffer.limit()), sc));
 						}
 					}
 				}
@@ -55,7 +56,6 @@ public class Server {
 				e.printStackTrace();
 			}
 		}
-//		ThreadPool.getInstance().addTask(new Task(this::handleSockets));
 	}
 	
 	public void startServer(){
@@ -71,18 +71,6 @@ public class Server {
 		}
 	}
 	
-	public void register(Selector s, ServerSocketChannel ssc){
-		try {
-			SocketChannel sc = ssc.accept();
-			if (sc != null) {
-				sc.configureBlocking(false);
-				sc.register(s, SelectionKey.OP_READ);
-				System.out.println("registered client: " + sc.getRemoteAddress());
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public static void main(String[] args) {
 		try {

@@ -15,6 +15,7 @@ public class Client {
 	int rate;
 	Random rand;
 	LinkedList<String> hashes;
+	SocketChannel socketChannel;
 	
 	public Client(int rate){
 		buf = ByteBuffer.allocate(8192);
@@ -26,21 +27,15 @@ public class Client {
 	
 	public void connect(){
 		try {
-			SocketChannel socketChannel = SocketChannel.open();
+			socketChannel = SocketChannel.open();
 			socketChannel.connect(new InetSocketAddress("localhost", 50000));
 			if (!socketChannel.finishConnect()) {
 				System.out.println("Connection Failed");
 			}
 			System.out.println("Connected");
 			while(true) {
-				buf.clear();
-				byte[] payload = generateRandomPayload();
-				String hash = SHA1FromBytes(payload);
-				hashes.addLast(hash);
-				buf.put(payload);
-				buf.flip();
-				socketChannel.write(buf);
-				buf.flip();
+				send();
+				recv();
 				try {
 					Thread.sleep(1000/rate);
 				} catch (InterruptedException e) {
@@ -50,6 +45,21 @@ public class Client {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void send() throws IOException {
+		buf.clear();
+		byte[] payload = generateRandomPayload();
+		String hash = SHA1FromBytes(payload);
+		hashes.addLast(hash);
+		buf.put(payload);
+		buf.flip();
+		socketChannel.write(buf);
+		buf.flip();
+	}
+	
+	public void recv(){
+	
 	}
 	
 	public byte[] generateRandomPayload(){

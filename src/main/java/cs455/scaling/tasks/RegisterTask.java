@@ -2,12 +2,12 @@ package cs455.scaling.tasks;
 
 import cs455.scaling.server.Server;
 import cs455.scaling.threading.Task;
-import cs455.scaling.threading.TaskInterface;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
-public class RegisterTask extends Task implements TaskInterface {
+public class RegisterTask extends Task {
     
     Server server;
     Selector selector;
