@@ -2,22 +2,36 @@ package cs455.scaling.threading;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ThreadPool {
-	
-	int numThreads;
+
+	public class BatchTimeoutTask extends TimerTask {
+
+		@Override
+		public void run() {
+			ThreadPool.getInstance().startNextBatch();
+		}
+	}
+
+
+	private final int numThreads, batchTime, batchSize;
 	Worker[] workers;
 	ArrayList<Integer> freeThreads;
-	final LinkedList<Task> jobs;
+	LinkedList<Task> batch;
+	Timer batchTimer = new Timer();
 	
-	private static ThreadPool threadPool = new ThreadPool(2);
+	private static ThreadPool threadPool = new ThreadPool(2, 10, 2);
 	
 	public static ThreadPool getInstance() {
 		return threadPool;
 	}
 	
-	private ThreadPool(int numThreads){
+	private ThreadPool(int numThreads, int batchSize, int batchTime){
 		this.numThreads = numThreads;
+		this.batchSize = batchSize;
+		this.batchTime = batchTime;
 		workers = new Worker[numThreads];
 		freeThreads = new ArrayList<>();
 		for (int i = 0; i < numThreads; i++) {
@@ -25,7 +39,7 @@ public class ThreadPool {
 			workers[i] = new Worker(i);
 			workers[i].start();
 		}
-		jobs = new LinkedList<>();
+		batch = new LinkedList<>();
 	}
 	
 	public synchronized Worker getAvailableWorker(){
@@ -46,30 +60,37 @@ public class ThreadPool {
 	}
 	
 	public void addTask(Task t){
-		synchronized (jobs) {
-			jobs.addLast(t);
-			jobs.notify();
+		synchronized (batch) {
+			batch.addLast(t);
+			if (batch.size() == 1) {
+				batch.notify();
+				batchTimer.schedule(new BatchTimeoutTask(), batchTime);
+			}
+			if (batch.size() == batchSize) {
+				startNextBatch();
+			}
 		}
 	}
 	
-	public Task getNextTask(){
-		synchronized (jobs){
-			if(jobs.size()==0)
-				try {
-					jobs.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			return jobs.removeFirst();
+	public void startNextBatch(){
+		synchronized (batch){
+			batchTimer.purge();
+			Worker w = getAvailableWorker();
+			w.assign(getBatch());
+			batch = new LinkedList<>();
 		}
 	}
-	
-	public void startNextJob(){
-		Worker w = getAvailableWorker();
-		Task t = getNextTask();
-		w.assign(t);
+
+	public LinkedList<Task> getBatch(){
+		if(batch.size()==0)
+			try {
+				batch.wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		return batch;
 	}
-	
+
 	public static void main(String[] args) {
 		ThreadPool pool = getInstance();
 		Task t = new Task(Task::printTime);
@@ -84,9 +105,7 @@ public class ThreadPool {
 		pool.addTask(t);
 		pool.addTask(t);
 		pool.addTask(t);
-		while(true) {
-			System.out.println("Starting task");
-			pool.startNextJob();
-		}
+		pool.addTask(t);
+		pool.addTask(t);
 	}
 }

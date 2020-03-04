@@ -2,12 +2,13 @@ package cs455.scaling.threading;
 
 import java.io.InterruptedIOException;
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 import java.util.function.Function;
 
 public class Worker extends Thread{
 	
 	public boolean terminate = false;
-	public volatile Task task;
+	public volatile LinkedList<Task> batch;
 	public int id;
 	
 	public Worker(int id){
@@ -16,9 +17,12 @@ public class Worker extends Thread{
 	
 	public void run() {
 		while(!terminate){
-			if (task != null){
-				task.run();
-				task = null;
+			if (batch != null){
+				for(Task t : batch){
+					t.run();
+
+				}
+				batch = null;
 				ThreadPool.getInstance().addAvailableWorker(this.id);
 			}else{
 				try {
@@ -30,7 +34,7 @@ public class Worker extends Thread{
 		}
 	}
 	
-	public void assign(Task t){
-		task = t;
+	public void assign(LinkedList<Task> batch){
+		this.batch = batch;
 	}
 }
