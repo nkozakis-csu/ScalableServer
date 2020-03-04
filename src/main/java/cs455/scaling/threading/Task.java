@@ -1,19 +1,28 @@
 package cs455.scaling.threading;
 
 public class Task {
-	public Runnable runMethod;
+
+	Runnable runnable;
 	
-	public Task(Runnable runMethod){
-		this.runMethod = runMethod;
+	public Task(){
+		runnable = Task::printTime;
+	}
+
+	public Task(Runnable runnable){
+		this.runnable = runnable;
 	}
 	
 	public static void printTime(){
 		System.out.println(System.currentTimeMillis());
 	}
-	
 
 	public void run(){
-		this.runMethod.run();
+		runnable.run();
+	}
+
+	public static void main(String[] args) {
+		Runnable pt = Task::printTime;
+		pt.run();
 	}
 
 }

@@ -98,7 +98,7 @@ public class ThreadPool {
 
 	public static void main(String[] args) {
 		ThreadPool pool = getInstance();
-		Task t = new Task(Task::printTime);
+		Task t = new Task();
 		pool.addTask(t);
 		pool.addTask(t);
 		pool.addTask(t);

@@ -1,8 +1,10 @@
 package cs455.scaling.server;
 
 import com.sun.org.apache.xerces.internal.dom.PSVIElementNSImpl;
+import cs455.scaling.threading.RegisterTask;
 import cs455.scaling.threading.Task;
 import cs455.scaling.threading.ThreadPool;
+import jdk.vm.ci.code.Register;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -24,13 +26,15 @@ public class Server {
 	
 	public void handleSockets() {
 		try {
+			System.out.println("handling sockets");
 			selector.select();
 			Set<SelectionKey> keys = selector.selectedKeys();
 			Iterator<SelectionKey> keysIterator = keys.iterator();
 			while (keysIterator.hasNext()) {
 				SelectionKey key = keysIterator.next();
 				if (key.isAcceptable()) {
-					this.register(selector, (ServerSocketChannel) key.channel());
+					ThreadPool.getInstance().addTask(new RegisterTask(selector, (ServerSocketChannel) key.channel()));
+//					this.register(selector, (ServerSocketChannel) key.channel());
 				}
 
 				if (key.isReadable()) {

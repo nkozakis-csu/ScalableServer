@@ -20,20 +20,22 @@ public class Client {
 		try {
 			SocketChannel socketChannel = SocketChannel.open();
 			socketChannel.connect(new InetSocketAddress("localhost", 50000));
-			if (!socketChannel.finishConnect()){
+			if (!socketChannel.finishConnect()) {
 				System.out.println("Connection Failed");
 			}
 			System.out.println("Connected");
-			buf.clear();
-			byte[] message = generateRandomMessage();
-			buf.put(message);
-			buf.flip();
-			socketChannel.write(buf);
-			buf.flip();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			while(true) {
+				buf.clear();
+				byte[] message = generateRandomMessage();
+				buf.put(message);
+				buf.flip();
+				socketChannel.write(buf);
+				buf.flip();
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
