@@ -1,5 +1,6 @@
 package cs455.scaling.threading;
 
+import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
@@ -19,8 +20,12 @@ public class Worker extends Thread{
 		while(!terminate){
 			if (batch != null){
 				for(Task t : batch){
-					t.run();
-
+					try {
+						t.run();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
 				}
 				batch = null;
 				ThreadPool.getInstance().addAvailableWorker(this.id);

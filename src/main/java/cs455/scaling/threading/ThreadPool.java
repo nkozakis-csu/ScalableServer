@@ -19,8 +19,8 @@ public class ThreadPool {
 
 
 	private int numThreads, batchTime, batchSize;
-	Worker[] workers;
-	ArrayList<Integer> freeThreads;
+	private Worker[] workers;
+	private final ArrayList<Integer> freeThreads;
 	LinkedList<Task> batch;
 	Timer batchTimer = new Timer();
 	
@@ -31,6 +31,7 @@ public class ThreadPool {
 	}
 	
 	private ThreadPool(){
+		freeThreads = new ArrayList<>();
 	}
 
 	public void setup(int numThreads, int batchSize, int batchTime){
@@ -38,7 +39,6 @@ public class ThreadPool {
         this.batchSize = batchSize;
         this.batchTime = batchTime;
         workers = new Worker[numThreads];
-        freeThreads = new ArrayList<>();
         for (int i = 0; i < numThreads; i++) {
             freeThreads.add(i);
             workers[i] = new Worker(i);
@@ -47,53 +47,44 @@ public class ThreadPool {
         batch = new LinkedList<>();
     }
 	
-	public synchronized Worker getAvailableWorker(){
-		if(freeThreads.size()==0) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+	public Worker getAvailableWorker(){
+		synchronized (freeThreads) {
+			if (freeThreads.size() == 0) {
+				try {
+					freeThreads.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		return workers[freeThreads.remove(0)];
 		
 	}
 	
-	public synchronized void addAvailableWorker(int id){
-		freeThreads.add(new Integer(id));
-		notify();
-	}
-	
-	public void addTask(Task t){
-		synchronized (batch) {
-			batch.addLast(t);
-			if (batch.size() == 1) {
-				batch.notify();
-				batchTimer.schedule(new BatchTimeoutTask(), batchTime);
-			}
-			if (batch.size() == batchSize) {
-				startNextBatch();
-			}
+	public void addAvailableWorker(int id){
+		synchronized (freeThreads) {
+			freeThreads.add(new Integer(id));
+			freeThreads.notify();
 		}
 	}
 	
-	public void startNextBatch(){
-		synchronized (batch){
+	public synchronized void addTask(Task t){
+		batch.addLast(t);
+		if (batch.size() == 1) {
+			batchTimer.schedule(new BatchTimeoutTask(), batchTime);
+		}
+		if (batch.size() == batchSize) {
+			startNextBatch();
+		}
+	}
+	
+	public synchronized void startNextBatch() {
+		if(batch.size()>0) {
 			batchTimer.purge();
 			Worker w = getAvailableWorker();
-			w.assign(getBatch());
+			w.assign(batch);
 			batch = new LinkedList<>();
 		}
-	}
-
-	public LinkedList<Task> getBatch(){
-		if(batch.size()==0)
-			try {
-				batch.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		return batch;
 	}
 
 	public static void main(String[] args) {

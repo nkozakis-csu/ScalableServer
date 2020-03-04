@@ -1,5 +1,7 @@
 package cs455.scaling.threading;
 
+import java.io.IOException;
+
 public class Task {
 
 	Runnable runnable;
@@ -16,7 +18,7 @@ public class Task {
 		System.out.println(System.currentTimeMillis());
 	}
 
-	public void run(){
+	public void run() throws IOException {
 		runnable.run();
 	}
 
