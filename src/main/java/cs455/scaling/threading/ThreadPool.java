@@ -1,5 +1,7 @@
 package cs455.scaling.threading;
 
+import sun.jvm.hotspot.debugger.cdbg.EnumType;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Timer;
@@ -16,31 +18,34 @@ public class ThreadPool {
 	}
 
 
-	private final int numThreads, batchTime, batchSize;
+	private int numThreads, batchTime, batchSize;
 	Worker[] workers;
 	ArrayList<Integer> freeThreads;
 	LinkedList<Task> batch;
 	Timer batchTimer = new Timer();
 	
-	private static ThreadPool threadPool = new ThreadPool(2, 10, 2);
+	private static ThreadPool threadPool = new ThreadPool();
 	
 	public static ThreadPool getInstance() {
 		return threadPool;
 	}
 	
-	private ThreadPool(int numThreads, int batchSize, int batchTime){
-		this.numThreads = numThreads;
-		this.batchSize = batchSize;
-		this.batchTime = batchTime;
-		workers = new Worker[numThreads];
-		freeThreads = new ArrayList<>();
-		for (int i = 0; i < numThreads; i++) {
-			freeThreads.add(i);
-			workers[i] = new Worker(i);
-			workers[i].start();
-		}
-		batch = new LinkedList<>();
+	private ThreadPool(){
 	}
+
+	public void setup(int numThreads, int batchSize, int batchTime){
+        this.numThreads = numThreads;
+        this.batchSize = batchSize;
+        this.batchTime = batchTime;
+        workers = new Worker[numThreads];
+        freeThreads = new ArrayList<>();
+        for (int i = 0; i < numThreads; i++) {
+            freeThreads.add(i);
+            workers[i] = new Worker(i);
+            workers[i].start();
+        }
+        batch = new LinkedList<>();
+    }
 	
 	public synchronized Worker getAvailableWorker(){
 		if(freeThreads.size()==0) {

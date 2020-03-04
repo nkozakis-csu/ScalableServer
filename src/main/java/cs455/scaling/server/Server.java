@@ -1,7 +1,8 @@
 package cs455.scaling.server;
 
 import com.sun.org.apache.xerces.internal.dom.PSVIElementNSImpl;
-import sun.nio.ch.ThreadPool;
+import cs455.scaling.threading.Task;
+import cs455.scaling.threading.ThreadPool;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -16,13 +17,13 @@ public class Server {
 	Selector selector;
 	ServerSocketChannel serverSocketChannel;
 	
-	public Server(int numThreads) throws IOException {
+	public Server() throws IOException {
 		selector = Selector.open();
 		this.startServer();
 	}
 	
-	public void handleSockets() throws IOException, InterruptedException {
-		while (true) {
+	public void handleSockets() {
+		try {
 			selector.select();
 			Set<SelectionKey> keys = selector.selectedKeys();
 			Iterator<SelectionKey> keysIterator = keys.iterator();
@@ -31,20 +32,22 @@ public class Server {
 				if (key.isAcceptable()) {
 					this.register(selector, (ServerSocketChannel) key.channel());
 				}
-				
+
 				if (key.isReadable()) {
 					System.out.println("reading channel");
 					SocketChannel sc = (SocketChannel) key.channel();
 					int numRead = sc.read(buf);
 					if (numRead > 0) {
 						System.out.println("Server: " + new String(buf.array()));
-						
+
 					}
 					buf.clear();
 				}
 			}
-			Thread.sleep(1000);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		ThreadPool.getInstance().addTask(new Task(this::handleSockets));
 	}
 	
 	public void startServer(){
@@ -74,8 +77,9 @@ public class Server {
 	
 	public static void main(String[] args) {
 		try {
-			Server s = new Server(Integer.parseInt(args[0]));
-			s.handleSockets();
+			Server s = new Server();
+			ThreadPool.getInstance().setup(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+			ThreadPool.getInstance().addTask(new Task(s::handleSockets));
 		} catch(Exception e){
 			e.printStackTrace();
 		}

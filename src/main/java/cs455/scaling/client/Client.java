@@ -24,18 +24,16 @@ public class Client {
 				System.out.println("Connection Failed");
 			}
 			System.out.println("Connected");
-			while(socketChannel != null){
-				buf.clear();
-				byte[] message = generateRandomMessage();
-				buf.put(message);
-				buf.flip();
-				socketChannel.write(buf);
-				buf.flip();
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			buf.clear();
+			byte[] message = generateRandomMessage();
+			buf.put(message);
+			buf.flip();
+			socketChannel.write(buf);
+			buf.flip();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
