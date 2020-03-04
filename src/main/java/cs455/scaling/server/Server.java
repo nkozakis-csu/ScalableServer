@@ -36,8 +36,10 @@ public class Server {
 				while (keysIterator.hasNext()) {
 					SelectionKey key = keysIterator.next();
 					if (key.isAcceptable()) {
-						ThreadPool.getInstance().addTask(new RegisterTask(this, selector, (ServerSocketChannel) key.channel()));
-						//this.register(selector, (ServerSocketChannel) key.channel());
+						SocketChannel sc = serverSocketChannel.accept();
+						if (sc != null) {
+							ThreadPool.getInstance().addTask(new RegisterTask(this, selector, sc));
+						}
 					}
 					
 					if (key.isReadable()) {
@@ -69,24 +71,24 @@ public class Server {
 		}
 	}
 	
-//	public void register(Selector s, ServerSocketChannel ssc){
-//		try {
-//			SocketChannel sc = ssc.accept();
-//			if (sc != null) {
-//				sc.configureBlocking(false);
-//				sc.register(s, SelectionKey.OP_READ);
-//				System.out.println("registered client: " + sc.getRemoteAddress());
-//			}
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
+	public void register(Selector s, ServerSocketChannel ssc){
+		try {
+			SocketChannel sc = ssc.accept();
+			if (sc != null) {
+				sc.configureBlocking(false);
+				sc.register(s, SelectionKey.OP_READ);
+				System.out.println("registered client: " + sc.getRemoteAddress());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public static void main(String[] args) {
 		try {
 			Server s = new Server();
-			s.startServer();
 			ThreadPool.getInstance().setup(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+			s.startServer();
 			s.handleSockets();
 //			ThreadPool.getInstance().addTask(new Task(s::handleSockets));
 		} catch(Exception e){

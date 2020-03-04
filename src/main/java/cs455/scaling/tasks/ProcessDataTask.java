@@ -25,7 +25,7 @@ public class ProcessDataTask extends Task implements TaskInterface {
 	public void run() throws IOException {
 		payload = buffer.array();
 		String test = SHA1FromBytes(payload);
-		System.out.println(test);
+//		System.out.println(test);
 		server.messageCount.getAndIncrement();
 	}
 	

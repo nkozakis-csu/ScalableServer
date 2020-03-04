@@ -11,23 +11,21 @@ public class RegisterTask extends Task implements TaskInterface {
     
     Server server;
     Selector selector;
-    ServerSocketChannel ssc;
+    SocketChannel sc;
 
-    public RegisterTask(Server s, Selector sel, ServerSocketChannel ssc){
+    public RegisterTask(Server s, Selector sel, SocketChannel sc){
         super();
         server = s;
         selector = sel;
-        this.ssc = ssc;
+        this.sc = sc;
     }
 
     public void run() throws IOException {
-        SocketChannel sc = ssc.accept();
-        if (sc != null) {
-            sc.configureBlocking(false);
-            sc.register(selector, SelectionKey.OP_READ);
-            System.out.println("registered client: " + sc.getRemoteAddress());
-            server.activeConnections.getAndIncrement();
-        }
+        sc.configureBlocking(false);
+        selector.wakeup();
+        sc.register(selector, SelectionKey.OP_READ);
+        System.out.println("registered client: " + sc.getRemoteAddress());
+        server.activeConnections.getAndIncrement();
     }
 
 }
