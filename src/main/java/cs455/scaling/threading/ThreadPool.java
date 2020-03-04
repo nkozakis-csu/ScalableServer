@@ -9,7 +9,7 @@ import java.util.TimerTask;
 
 public class ThreadPool {
 
-	public class BatchTimeoutTask extends TimerTask {
+	public static class BatchTimeoutTask extends TimerTask {
 
 		@Override
 		public void run() {

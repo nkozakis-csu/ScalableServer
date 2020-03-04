@@ -5,14 +5,22 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Random;
 import java.util.Scanner;
+import static cs455.scaling.tasks.Hashing.SHA1FromBytes;
 
 public class Client {
 	ByteBuffer buf;
+	int rate;
+	Random rand;
+	LinkedList<String> hashes;
 	
-	public Client(){
-		buf = ByteBuffer.allocate(1024);
-		
+	public Client(int rate){
+		buf = ByteBuffer.allocate(8192);
+		this.rate = rate;
+		rand = new Random();
+		hashes = new LinkedList<>();
 		
 	}
 	
@@ -26,13 +34,15 @@ public class Client {
 			System.out.println("Connected");
 			while(true) {
 				buf.clear();
-				byte[] message = generateRandomMessage();
-				buf.put(message);
+				byte[] payload = generateRandomPayload();
+				String hash = SHA1FromBytes(payload);
+				hashes.addLast(hash);
+				buf.put(payload);
 				buf.flip();
 				socketChannel.write(buf);
 				buf.flip();
 				try {
-					Thread.sleep(100);
+					Thread.sleep(1000/rate);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -42,12 +52,14 @@ public class Client {
 		}
 	}
 	
-	public byte[] generateRandomMessage(){
-		return ("data2: "+System.currentTimeMillis()).getBytes();
+	public byte[] generateRandomPayload(){
+		byte[] payload = new byte[8192];
+		rand.nextBytes(payload);
+		return payload;
 	}
 	
 	public static void main(String[] args) {
-		Client c = new Client();
+		Client c = new Client(Integer.parseInt(args[0]));
 		c.connect();
 		Scanner scan = new Scanner(System.in);
 		scan.nextLine();
