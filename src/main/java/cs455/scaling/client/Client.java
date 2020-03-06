@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
+
 import static cs455.scaling.tasks.Hashing.SHA1FromBytes;
 
 public class Client {
@@ -16,9 +14,11 @@ public class Client {
 	Random rand;
 	LinkedList<String> hashes;
 	SocketChannel socketChannel;
+	ByteBuffer inBuffer;
 	
 	public Client(int rate){
 		buf = ByteBuffer.allocate(8192);
+		inBuffer = ByteBuffer.allocate(1024);
 		this.rate = rate;
 		rand = new Random();
 		hashes = new LinkedList<>();
@@ -35,7 +35,7 @@ public class Client {
 			System.out.println("Connected");
 			while(true) {
 				send();
-				recv();
+//				recv();
 				try {
 					Thread.sleep(1000/rate);
 				} catch (InterruptedException e) {
@@ -48,24 +48,26 @@ public class Client {
 	}
 	
 	public void send() throws IOException {
-		buf.clear();
-		byte[] payload = generateRandomPayload();
-		String hash = SHA1FromBytes(payload);
+		putRandomPayload();
+		String hash = SHA1FromBytes(buf.array());
 		hashes.addLast(hash);
-		buf.put(payload);
 		buf.flip();
 		socketChannel.write(buf);
-		buf.flip();
+		System.out.println("Writing buffer with has: "+ hash);
 	}
 	
-	public void recv(){
-	
+	public void recv() throws IOException {
+		int bytesRead = socketChannel.read(inBuffer);
+		if (bytesRead > 0){
+			System.out.println(Arrays.toString(Arrays.copyOf(inBuffer.array(), inBuffer.limit())));
+			inBuffer.clear();
+		}
 	}
 	
-	public byte[] generateRandomPayload(){
-		byte[] payload = new byte[8192];
-		rand.nextBytes(payload);
-		return payload;
+	public void putRandomPayload(){
+		buf.clear();
+		rand.nextBytes(buf.array());
+		buf.position(buf.capacity());
 	}
 	
 	public static void main(String[] args) {

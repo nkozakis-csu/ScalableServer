@@ -32,7 +32,7 @@ public class Server {
 	public void handleSockets() {
 		while (true) {
 			try {
-				selector.select();
+				selector.selectNow();
 				Set<SelectionKey> keys = selector.selectedKeys();
 				Iterator<SelectionKey> keysIterator = keys.iterator();
 				while (keysIterator.hasNext()) {
@@ -49,12 +49,23 @@ public class Server {
 						int numRead = sc.read(buffer);
 						if (numRead > 0) {
 							ThreadPool.getInstance().addTask(new ProcessDataTask(this, Arrays.copyOfRange(buffer.array(), 0, buffer.limit()), sc));
+							buffer.clear();
 						}
 					}
+					keysIterator.remove();
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public void register(SocketChannel sc){
+		try {
+			sc.configureBlocking(false);
+			sc.register(selector, SelectionKey.OP_READ);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	

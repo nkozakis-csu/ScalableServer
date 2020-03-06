@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
 public class RegisterTask extends Task {
-    
     Server server;
     Selector selector;
     SocketChannel sc;
@@ -22,8 +21,8 @@ public class RegisterTask extends Task {
 
     public void run() throws IOException {
         sc.configureBlocking(false);
-        selector.wakeup();
         sc.register(selector, SelectionKey.OP_READ);
+//        selector.wakeup();
         System.out.println("registered client: " + sc.getRemoteAddress());
         server.activeConnections.getAndIncrement();
     }
