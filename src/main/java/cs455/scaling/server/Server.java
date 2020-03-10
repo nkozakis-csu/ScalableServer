@@ -19,10 +19,12 @@ public class Server {
 	
 	public AtomicInteger messageCount;
 	public AtomicInteger activeConnections;
+	int port;
 	ByteBuffer buffer;
 	
-	public Server() throws IOException {
+	public Server(int port) throws IOException {
 		selector = Selector.open();
+		this.port = port;
 		messageCount = new AtomicInteger(0);
 		activeConnections = new AtomicInteger(0);
 		infoTimer = new Timer();
@@ -59,23 +61,15 @@ public class Server {
 			}
 		}
 	}
-	
-//	public void register(SocketChannel sc){
-//		try {
-//			sc.configureBlocking(false);
-//			sc.register(selector, SelectionKey.OP_READ);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-	
+
 	public void startServer(){
 		try {
 			serverSocketChannel = ServerSocketChannel.open();
-			serverSocketChannel.bind(new InetSocketAddress(50000));
+			serverSocketChannel.bind(new InetSocketAddress(this.port));
 			serverSocketChannel.configureBlocking(false);
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 			infoTimer.scheduleAtFixedRate(new Throughput(this), 10000, 10000);
+			System.out.println("Listening on "+serverSocketChannel.getLocalAddress());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -84,11 +78,10 @@ public class Server {
 	
 	public static void main(String[] args) {
 		try {
-			Server s = new Server();
-			ThreadPool.getInstance().setup(Integer.parseInt(args[0]), Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+			Server s = new Server(Integer.parseInt(args[0]));
+			ThreadPool.getInstance().setup(Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]));
 			s.startServer();
 			s.handleSockets();
-//			ThreadPool.getInstance().addTask(new Task(s::handleSockets));
 		} catch(Exception e){
 			e.printStackTrace();
 		}

@@ -25,9 +25,9 @@ public class ProcessDataTask extends Task {
 	}
 	
 	public void run() throws IOException, NoSuchAlgorithmException {
-		String test = SHA1FromBytes(payload);
+		String hash = SHA1FromBytes(payload);
 		server.messageCount.getAndIncrement();
-		byte[] replyBytes = test.getBytes();
+		byte[] replyBytes = hash.getBytes();
 		ByteBuffer reply = ByteBuffer.allocate(replyBytes.length);
 		reply.put(replyBytes);
 		reply.flip();

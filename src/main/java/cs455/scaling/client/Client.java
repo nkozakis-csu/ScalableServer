@@ -12,6 +12,8 @@ import static cs455.scaling.tasks.Hashing.SHA1FromBytes;
 
 public class Client {
 	ByteBuffer buf;
+	String ip;
+	int port;
 	int rate;
 	Random rand;
 	LinkedList<String> hashes;
@@ -22,9 +24,11 @@ public class Client {
 	AtomicInteger sentCount;
 	AtomicInteger recvCount;
 	
-	public Client(int rate){
+	public Client(String ip, int port, int rate){
+		this.ip = ip;
+		this.port = port;
 		buf = ByteBuffer.allocate(8192);
-		inBuffer = ByteBuffer.allocate(1024);
+		inBuffer = ByteBuffer.allocate(40);
 		sentCount = new AtomicInteger(0);
 		recvCount = new AtomicInteger(0);
 		this.rate = rate;
@@ -37,22 +41,23 @@ public class Client {
 	public void connect(){
 		try {
 			socketChannel = SocketChannel.open();
-			socketChannel.connect(new InetSocketAddress("localhost", 50000));
+			socketChannel.connect(new InetSocketAddress(ip, port));
 			socketChannel.configureBlocking(false);
-			infoTimer.scheduleAtFixedRate(new Throughput(this), 10000, 10000);
+			infoTimer.scheduleAtFixedRate(new Throughput(this), 20000, 20000);
 			if (!socketChannel.finishConnect()) {
 				System.out.println("Connection Failed");
-			}
-			System.out.println("Connected");
-			while(true) {
-				if(numToSend > 0){
-					send();
-				}
-				recv();
-				try {
-					Thread.sleep(1000/rate);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+			} else {
+				System.out.println("Connected");
+				while (true) {
+					if (numToSend > 0) {
+						send();
+					}
+					recv();
+					try {
+						Thread.sleep(1000 / rate);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		} catch (IOException | NoSuchAlgorithmException e) {
@@ -63,19 +68,18 @@ public class Client {
 	public void send() throws IOException, NoSuchAlgorithmException {
 		putRandomPayload();
 		String hash = SHA1FromBytes(buf.array());
-		hashes.addLast(hash);
-//		System.out.println("send: "+hashes);
+		hashes.addLast(hash); // add to list of hashes sent
 		buf.flip();
 		socketChannel.write(buf);
-		numToSend--;
+		numToSend--; // temp
 		sentCount.getAndIncrement();
 	}
 	
 	public void recv() throws IOException {
 		int bytesRead = socketChannel.read(inBuffer);
 		if (inBuffer.position() == inBuffer.capacity()){
-			String hash = new String(Arrays.copyOf(inBuffer.array(), inBuffer.position()));
-			hashes.remove(hash);
+			String hash = new String(inBuffer.array());
+			boolean removed = hashes.remove(hash);
 			inBuffer.clear();
 			recvCount.getAndIncrement();
 		}
@@ -88,7 +92,7 @@ public class Client {
 	}
 	
 	public static void main(String[] args) {
-		Client c = new Client(Integer.parseInt(args[0]));
+		Client c = new Client(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 		c.connect();
 		Scanner scan = new Scanner(System.in);
 		scan.nextLine();
