@@ -13,6 +13,7 @@ public class ThreadPool {
 
 		@Override
 		public void run() {
+			System.out.println("Times up buckaroo");
 			ThreadPool.getInstance().startNextBatch();
 		}
 	}
@@ -63,18 +64,20 @@ public class ThreadPool {
 	
 	public void addAvailableWorker(int id){
 		synchronized (freeThreads) {
-			freeThreads.add(new Integer(id));
+			freeThreads.add(id);
 			freeThreads.notify();
 		}
 	}
 	
 	public synchronized void addTask(Task t){
 		batch.addLast(t);
+		System.out.println("batchsize: "+batch.size());
 		if (batch.size() == 1) {
 			batchTimer.schedule(new BatchTimeoutTask(), batchTime);
 		}
 		if (batch.size() == batchSize) {
 			startNextBatch();
+			System.out.println("full batch");
 		}
 	}
 	
@@ -86,22 +89,5 @@ public class ThreadPool {
 			batch = new LinkedList<>();
 		}
 	}
-
-	public static void main(String[] args) {
-		ThreadPool pool = getInstance();
-		Task t = new Task();
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-		pool.addTask(t);
-	}
+	
 }

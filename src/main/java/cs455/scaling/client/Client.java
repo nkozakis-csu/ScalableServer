@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static cs455.scaling.tasks.Hashing.SHA1FromBytes;
 
@@ -15,13 +16,20 @@ public class Client {
 	LinkedList<String> hashes;
 	SocketChannel socketChannel;
 	ByteBuffer inBuffer;
+	int numToSend = 5000;
+	Timer infoTimer;
+	AtomicInteger sentCount;
+	AtomicInteger recvCount;
 	
 	public Client(int rate){
 		buf = ByteBuffer.allocate(8192);
 		inBuffer = ByteBuffer.allocate(1024);
+		sentCount = new AtomicInteger(0);
+		recvCount = new AtomicInteger(0);
 		this.rate = rate;
 		rand = new Random();
 		hashes = new LinkedList<>();
+		infoTimer = new Timer();
 		
 	}
 	
@@ -29,13 +37,17 @@ public class Client {
 		try {
 			socketChannel = SocketChannel.open();
 			socketChannel.connect(new InetSocketAddress("localhost", 50000));
+			socketChannel.configureBlocking(false);
+			infoTimer.scheduleAtFixedRate(new Throughput(this), 10000, 10000);
 			if (!socketChannel.finishConnect()) {
 				System.out.println("Connection Failed");
 			}
 			System.out.println("Connected");
 			while(true) {
-				send();
-//				recv();
+				if(numToSend > 0){
+					send();
+				}
+				recv();
 				try {
 					Thread.sleep(1000/rate);
 				} catch (InterruptedException e) {
@@ -51,16 +63,20 @@ public class Client {
 		putRandomPayload();
 		String hash = SHA1FromBytes(buf.array());
 		hashes.addLast(hash);
+//		System.out.println("send: "+hashes);
 		buf.flip();
 		socketChannel.write(buf);
-		System.out.println("Writing buffer with has: "+ hash);
+		numToSend--;
+		sentCount.getAndIncrement();
 	}
 	
 	public void recv() throws IOException {
 		int bytesRead = socketChannel.read(inBuffer);
-		if (bytesRead > 0){
-			System.out.println(Arrays.toString(Arrays.copyOf(inBuffer.array(), inBuffer.limit())));
+		if (inBuffer.position() == inBuffer.capacity()){
+			String hash = new String(Arrays.copyOf(inBuffer.array(), inBuffer.position()));
+			hashes.remove(hash);
 			inBuffer.clear();
+			recvCount.getAndIncrement();
 		}
 	}
 	

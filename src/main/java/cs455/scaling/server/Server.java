@@ -47,7 +47,7 @@ public class Server {
 					if (key.isReadable()) {
 						SocketChannel sc = (SocketChannel) key.channel();
 						int numRead = sc.read(buffer);
-						if (numRead > 0) {
+						if (buffer.position() == buffer.capacity()) {
 							ThreadPool.getInstance().addTask(new ProcessDataTask(this, Arrays.copyOfRange(buffer.array(), 0, buffer.limit()), sc));
 							buffer.clear();
 						}
@@ -60,14 +60,14 @@ public class Server {
 		}
 	}
 	
-	public void register(SocketChannel sc){
-		try {
-			sc.configureBlocking(false);
-			sc.register(selector, SelectionKey.OP_READ);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public void register(SocketChannel sc){
+//		try {
+//			sc.configureBlocking(false);
+//			sc.register(selector, SelectionKey.OP_READ);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	public void startServer(){
 		try {
@@ -75,7 +75,6 @@ public class Server {
 			serverSocketChannel.bind(new InetSocketAddress(50000));
 			serverSocketChannel.configureBlocking(false);
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-			System.out.println("Server listening on: "+serverSocketChannel.getLocalAddress());
 			infoTimer.scheduleAtFixedRate(new Throughput(this), 10000, 10000);
 		} catch (IOException e) {
 			e.printStackTrace();
