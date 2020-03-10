@@ -5,6 +5,7 @@ import cs455.scaling.tasks.RegisterTask;
 import cs455.scaling.threading.ThreadPool;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -50,9 +51,9 @@ public class Server {
 					if (key.isReadable()) {
 						SocketChannel sc = (SocketChannel) key.channel();
 						int numRead = sc.read(buffer);
-						if (buffer.position() == buffer.capacity()) {
+						if (buffer.position() == buffer.capacity()) { //process once read full 8KB
 							ThreadPool.getInstance().addTask(
-									new ProcessDataTask(this, Arrays.copyOfRange(buffer.array(), 0, buffer.limit()), sc, (int) key.attachment()));
+									new ProcessDataTask(this, Arrays.copyOfRange(buffer.array(), 0, buffer.limit()), sc, (int) key.attachment())); //attached is the ID number for keeping track of message counts
 							buffer.clear();
 						}
 					}
@@ -70,8 +71,8 @@ public class Server {
 			serverSocketChannel.bind(new InetSocketAddress(this.port));
 			serverSocketChannel.configureBlocking(false);
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-			infoTimer.scheduleAtFixedRate(new Throughput(this), 20000, 20000);
-			System.out.println("Listening on "+serverSocketChannel.getLocalAddress());
+			infoTimer.scheduleAtFixedRate(new Throughput(this), 20000, 20000); // start throughput info timer
+			System.out.println("Listening on "+ InetAddress.getLocalHost()+":"+this.port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

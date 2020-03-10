@@ -19,7 +19,6 @@ public class Client {
 	LinkedList<String> hashes;
 	SocketChannel socketChannel;
 	ByteBuffer inBuffer;
-	int numToSend = 5000;
 	Timer infoTimer;
 	AtomicInteger sentCount;
 	AtomicInteger recvCount;
@@ -49,9 +48,7 @@ public class Client {
 			} else {
 				System.out.println("Connected");
 				while (true) {
-					if (numToSend > 0) {
-						send();
-					}
+					send();
 					recv();
 					try {
 						Thread.sleep(1000 / rate);
@@ -71,7 +68,6 @@ public class Client {
 		hashes.addLast(hash); // add to list of hashes sent
 		buf.flip();
 		socketChannel.write(buf);
-		numToSend--; // temp
 		sentCount.getAndIncrement();
 	}
 	

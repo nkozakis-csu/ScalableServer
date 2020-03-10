@@ -1,7 +1,7 @@
 DIR="$( cd "$( dirname "$0" )" &&pwd )"
-JAR_PATH="$DIR/conf/:$DIR/build/libs/P2P-Network-1.0-SNAPSHOT.jar"
-MACHINE_LIST="$DIR/conf/machine_list"
-SCRIPT="java -cp $JAR_PATH cs455.scaling.server.Server 129.82.44.135 50000"
+JAR_PATH="$DIR/build/libs/ScalableServer-1.0.jar"
+MACHINE_LIST="$DIR/machine_list"
+SCRIPT="java -cp $JAR_PATH cs455.scaling.client.Client 129.82.44.156 50000 3"
 COMMAND='gnome-terminal --geometry=200x40'
 for machine in `cat $MACHINE_LIST`
 do

@@ -23,7 +23,6 @@ public class Throughput extends TimerTask {
 			counts[i] = (double)server.messageCount.get(i)/20;
 			throughput += counts[i];
 			server.messageCount.set(i, 0);
-			System.out.println("counts: "+i+" "+counts[i]);
 		}
 
 		if (numCons > 0) {
