@@ -21,10 +21,9 @@ public class RegisterTask extends Task {
 
     public void run() throws IOException {
         sc.configureBlocking(false);
-        sc.register(selector, SelectionKey.OP_READ);
-//        selector.wakeup();
+        int id = server.activeConnections.getAndIncrement();
+        sc.register(selector, SelectionKey.OP_READ, id);
         System.out.println("registered client: " + sc.getRemoteAddress());
-        server.activeConnections.getAndIncrement();
     }
 
 }

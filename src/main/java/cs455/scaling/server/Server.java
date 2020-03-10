@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Server {
 	Selector selector;
@@ -17,7 +18,7 @@ public class Server {
 	
 	private Timer infoTimer;
 	
-	public AtomicInteger messageCount;
+	public AtomicIntegerArray messageCount;
 	public AtomicInteger activeConnections;
 	int port;
 	ByteBuffer buffer;
@@ -25,7 +26,7 @@ public class Server {
 	public Server(int port) throws IOException {
 		selector = Selector.open();
 		this.port = port;
-		messageCount = new AtomicInteger(0);
+		messageCount = new AtomicIntegerArray(10000);
 		activeConnections = new AtomicInteger(0);
 		infoTimer = new Timer();
 		buffer = ByteBuffer.allocate(8192);
@@ -50,7 +51,8 @@ public class Server {
 						SocketChannel sc = (SocketChannel) key.channel();
 						int numRead = sc.read(buffer);
 						if (buffer.position() == buffer.capacity()) {
-							ThreadPool.getInstance().addTask(new ProcessDataTask(this, Arrays.copyOfRange(buffer.array(), 0, buffer.limit()), sc));
+							ThreadPool.getInstance().addTask(
+									new ProcessDataTask(this, Arrays.copyOfRange(buffer.array(), 0, buffer.limit()), sc, (int) key.attachment()));
 							buffer.clear();
 						}
 					}
@@ -68,7 +70,7 @@ public class Server {
 			serverSocketChannel.bind(new InetSocketAddress(this.port));
 			serverSocketChannel.configureBlocking(false);
 			serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-			infoTimer.scheduleAtFixedRate(new Throughput(this), 10000, 10000);
+			infoTimer.scheduleAtFixedRate(new Throughput(this), 20000, 20000);
 			System.out.println("Listening on "+serverSocketChannel.getLocalAddress());
 		} catch (IOException e) {
 			e.printStackTrace();
