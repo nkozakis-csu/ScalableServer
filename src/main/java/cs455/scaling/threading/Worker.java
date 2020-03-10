@@ -3,6 +3,7 @@ package cs455.scaling.threading;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.lang.reflect.Method;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.function.Function;
 
@@ -22,7 +23,7 @@ public class Worker extends Thread{
 				for(Task t : batch){
 					try {
 						t.run();
-					} catch (IOException e) {
+					} catch (IOException | NoSuchAlgorithmException e) {
 						e.printStackTrace();
 					}
 					

@@ -13,7 +13,6 @@ public class ThreadPool {
 
 		@Override
 		public void run() {
-			System.out.println("Times up buckaroo");
 			ThreadPool.getInstance().startNextBatch();
 		}
 	}
@@ -71,13 +70,11 @@ public class ThreadPool {
 	
 	public synchronized void addTask(Task t){
 		batch.addLast(t);
-		System.out.println("batchsize: "+batch.size());
 		if (batch.size() == 1) {
 			batchTimer.schedule(new BatchTimeoutTask(), batchTime);
 		}
 		if (batch.size() == batchSize) {
 			startNextBatch();
-			System.out.println("full batch");
 		}
 	}
 	

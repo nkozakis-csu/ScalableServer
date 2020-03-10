@@ -6,6 +6,7 @@ import cs455.scaling.threading.Task;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.security.NoSuchAlgorithmException;
 
 import static cs455.scaling.tasks.Hashing.SHA1FromBytes;
 
@@ -23,7 +24,7 @@ public class ProcessDataTask extends Task {
 		this.server = s;
 	}
 	
-	public void run() throws IOException {
+	public void run() throws IOException, NoSuchAlgorithmException {
 		String test = SHA1FromBytes(payload);
 		server.messageCount.getAndIncrement();
 		byte[] replyBytes = test.getBytes();

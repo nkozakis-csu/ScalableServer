@@ -1,6 +1,7 @@
 package cs455.scaling.threading;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 public class Task {
 
@@ -18,7 +19,7 @@ public class Task {
 		System.out.println(System.currentTimeMillis());
 	}
 
-	public void run() throws IOException {
+	public void run() throws IOException, NoSuchAlgorithmException {
 		runnable.run();
 	}
 

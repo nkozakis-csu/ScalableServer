@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,12 +55,12 @@ public class Client {
 					e.printStackTrace();
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void send() throws IOException {
+	public void send() throws IOException, NoSuchAlgorithmException {
 		putRandomPayload();
 		String hash = SHA1FromBytes(buf.array());
 		hashes.addLast(hash);
