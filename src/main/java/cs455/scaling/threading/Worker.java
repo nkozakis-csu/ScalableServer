@@ -20,6 +20,7 @@ public class Worker extends Thread{
 	public void run() {
 		while(!terminate){
 			if (batch != null){
+				//run all tasks in batch
 				for(Task t : batch){
 					try {
 						t.run();
@@ -29,7 +30,7 @@ public class Worker extends Thread{
 					
 				}
 				batch = null;
-				ThreadPool.getInstance().addAvailableWorker(this.id);
+				ThreadPool.getInstance().addAvailableWorker(this.id); //re add self to threadpool's available worker list
 			}else{
 				synchronized (this){
 					try {
@@ -42,8 +43,8 @@ public class Worker extends Thread{
 		}
 	}
 	
-	public void assign(LinkedList<Task> batch){
+	public synchronized void assign(LinkedList<Task> batch){ // assign task a new batch
 		this.batch = batch;
-		synchronized (this) { notify(); }
+		notify();
 	}
 }

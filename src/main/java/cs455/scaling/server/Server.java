@@ -27,28 +27,28 @@ public class Server {
 	public Server(int port) throws IOException {
 		selector = Selector.open();
 		this.port = port;
-		messageCount = new AtomicIntegerArray(10000);
-		activeConnections = new AtomicInteger(0);
+		messageCount = new AtomicIntegerArray(10000); //keep track of messages per 20 seconds for each client
+		activeConnections = new AtomicInteger(0); // keep track of number of clients
 		infoTimer = new Timer();
 		buffer = ByteBuffer.allocate(8192);
 	}
 	
-	public void handleSockets() {
+	public void handleSockets() { //starts tasks for active sockets
 		while (true) {
 			try {
-				selector.selectNow();
+				selector.selectNow(); // check sockets for activity with selector
 				Set<SelectionKey> keys = selector.selectedKeys();
 				Iterator<SelectionKey> keysIterator = keys.iterator();
 				while (keysIterator.hasNext()) {
 					SelectionKey key = keysIterator.next();
-					if (key.isAcceptable()) {
+					if (key.isAcceptable()) { // if socket is accepted, start register task
 						SocketChannel sc = serverSocketChannel.accept();
 						if (sc != null) {
 							ThreadPool.getInstance().addTask(new RegisterTask(this, selector, sc));
 						}
 					}
 					
-					if (key.isReadable()) {
+					if (key.isReadable()) { // if socket has active data coming in, start process data task to read compute and write to it.
 						SocketChannel sc = (SocketChannel) key.channel();
 						int numRead = sc.read(buffer);
 						if (buffer.position() == buffer.capacity()) { //process once read full 8KB

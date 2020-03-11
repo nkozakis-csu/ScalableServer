@@ -10,7 +10,7 @@ public class ThreadPool {
 
 		@Override
 		public void run() {
-			ThreadPool.getInstance().startNextBatch();
+			ThreadPool.getInstance().startNextBatch(); // starts next batch if batch-time is reached
 		}
 	}
 
@@ -21,7 +21,7 @@ public class ThreadPool {
 	LinkedList<Task> batch;
 	Timer batchTimer = new Timer();
 	
-	private static ThreadPool threadPool = new ThreadPool();
+	private static ThreadPool threadPool = new ThreadPool(); // singleton
 	
 	public static ThreadPool getInstance() {
 		return threadPool;
@@ -29,12 +29,13 @@ public class ThreadPool {
 	
 	private ThreadPool(){
 		freeThreads = new ArrayList<>();
-	}
+	} // keep track of which workers are free
 
 	public void setup(int numThreads, int batchSize, int batchTime){
         this.numThreads = numThreads;
         this.batchSize = batchSize;
         this.batchTime = batchTime;
+        //create new workers and start them
         workers = new Worker[numThreads];
         for (int i = 0; i < numThreads; i++) {
             freeThreads.add(i);
@@ -44,40 +45,42 @@ public class ThreadPool {
         batch = new LinkedList<>();
     }
 	
-	public Worker getAvailableWorker(){
+	private Worker getAvailableWorker(){
 		synchronized (freeThreads) {
 			if (freeThreads.size() == 0) {
 				try {
-					freeThreads.wait();
+					freeThreads.wait(); // wait for available worker if none are free.
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
-			return workers[freeThreads.remove(0)];
+			return workers[freeThreads.remove(0)]; // grab next free worker
 		}
 		
 	}
 	
-	public void addAvailableWorker(int id){
+	protected void addAvailableWorker(int id){
 		synchronized (freeThreads) {
 			freeThreads.add(id);
-			freeThreads.notify();
+			if (freeThreads.size() == 1) {
+				freeThreads.notify(); // notify worker is available if a thread is waiting for one.
+			}
 		}
 	}
 	
-	public synchronized void addTask(Task t){
+	public synchronized void addTask(Task t){ // add task to threadpool
 		batch.addLast(t);
 		if (batch.size() == 1) {
-			batchTimer.schedule(new BatchTimeoutTask(), batchTime);
+			batchTimer.schedule(new BatchTimeoutTask(), batchTime); // start batch timer if first task in batch
 		}
-		if (batch.size() == batchSize) {
+		if (batch.size() == batchSize) { // start next batch if batch is full
 			startNextBatch();
 		}
 	}
 	
-	public synchronized void startNextBatch() {
+	private synchronized void startNextBatch() { // sends batch to next available worker
 		if(batch.size()>0) {
-			batchTimer.purge();
+			batchTimer.purge(); //end batch time
 			Worker w = getAvailableWorker();
 			w.assign(batch);
 			batch = new LinkedList<>();
