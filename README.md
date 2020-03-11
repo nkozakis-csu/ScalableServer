@@ -1,6 +1,8 @@
 #Scalable Server
 Author: Nathan Kozakis
 
+first run `gradle build`
+
 Server
 * Computes hashes of payloads and returns them to clients. Can handle 100+ clients connected and sending payloads at the samee time.
   Uses non-blocking IO to perform socket reads/writes with only threads created from ThreadPool.
@@ -11,6 +13,7 @@ Client
   once the hash has been received from the server.
 * `java -cp build/libs/ScalableServer-1.0.jar cs455.scaling.client.Client <ip> <port> <rate>`
 
+run `./startClients.sh` to start multiple 10 clients on cs120 lab machines
 
 ##Files:
 
