@@ -5,7 +5,7 @@ Author: Nathan Kozakis
 first run `gradle build`
 
 Server
-* Computes hashes of payloads and returns them to clients. Can handle 100+ clients connected and sending payloads at the samee time.
+* Computes hashes of payloads and returns them to clients. Can handle 100+ clients connected and sending payloads at the same time.
   Uses non-blocking IO to perform socket reads/writes with only threads created from ThreadPool.
 * `java -cp build/libs/ScalableServer-1.0.jar cs455.scaling.server.Server <port> <threadpool-size> <batch-size> <batch-time>`
          
